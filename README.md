@@ -38,6 +38,8 @@ We are using the following components in our obstacle-avoiding vehicle:
 
 - **Li-Po 3S 1500mAh Battery**: Provides power to all the components, ensuring a stable and long-lasting energy supply for both sensors and motors.
 
+- **Buck Converter**: Provides 5 volts from the 11.1v Li-Po battery as we are using components that run on 5v.
+
 - **Generic DC Motor**: Drives the rear wheels, providing the vehicle with the necessary power to move. The motor is controlled via the L298N driver, which adjusts the speed and direction as per the logic handled by the Arduino.
 
 ### 3D modeling and mechanisms:
