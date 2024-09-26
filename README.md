@@ -10,11 +10,11 @@ Our project integrates five ultrasonic sensors, positioned at the front, left, r
 
 ### Machine learning:
 
-We used an ESP32CAM to process images and detect traffic towers in real-time for our project.
+We used an Raspberry Pi Zero 2 W to process images and detect traffic towers in real-time for our project.
 
-![ESP32CAM](https://i.ibb.co.com/g3BGp0H/esp32.jpg)
+![Raspberry Pi Zero 2 W](https://i.ibb.co.com/g3BGp0H/esp32.jpg)
 
-The model was trained using Edge Impulse, which made it easy to build and deploy machine learning models on the ESP32CAM. Our dataset included a large collection of images of both green and red traffic towers, with 4,017 images for training and 1,006 for testing. After training, the model reached an accuracy of 97.61%. Here is the confusion matrix:
+The model was trained using Edge Impulse, which made it easy to build and deploy machine learning models on the Raspberry Pi Zero 2 W. Our dataset included a large collection of images of both green and red traffic towers, with 4,017 images for training and 1,006 for testing. After training, the model reached an accuracy of 97.61%. Here is the confusion matrix:
 
 ![Confusion Matrix](https://i.ibb.co.com/fNXP2Dn/confusion-matrix.png)
 
@@ -28,7 +28,7 @@ We are using the following components in our obstacle-avoiding vehicle:
 
 - **Arduino UNO**: Acts as the central processing unit, handling all the logic and decision-making for the vehicle. It processes data from various sensors and components to determine the appropriate actions, such as steering adjustments or speed control.
 
-- **ESP32-Cam**: This module is responsible for image recognition tasks, such as detecting traffic towers and other visual markers. It performs complex image processing and sends the results to the Arduino UNO via the UART bus, allowing the main controller to make informed decisions based on visual data.
+- **Raspberry Pi Zero 2 W**: This module is responsible for image recognition tasks, such as detecting traffic towers and other visual markers. It performs complex image processing and sends the results to the Arduino UNO via a custom communication line, allowing the main controller to make informed decisions based on visual data.
 
 - **L298N H Bridge Motor Driver**: Controls the rear wheels, managing both the direction and speed of the vehicle's movement. The motor driver allows the Arduino UNO to precisely adjust the vehicle’s speed for forward or reverse motion.
 
