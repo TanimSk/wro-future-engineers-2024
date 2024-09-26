@@ -3,6 +3,12 @@
 #define ROTATION_THRESHOLD 3
 #define MAX_SONARS 5
 
+#define RPI_PWM_MAX 168
+#define RPI_PWM_MIN 0
+#define RPI_COMM_PIN A4
+
+#define RPI_CAMERA_FLASH 11
+
 int previousSteerAngle = 90;
 int degreeToSteer = 0;
 
@@ -25,11 +31,11 @@ const int motorIn2 = 7;
 
 // Sonar pins
 const int sonarPins[MAX_SONARS][2] = {
-    {A2, 2},  // left
-    {A4, 3},  // front-left
-    {A3, A5}, // front-center
-    {A1, 4},  // front-right
-    {A0, 6}   // right
+    {A1, 2},  // left
+    {4, 3},  // front-left
+    {A2, A5}, // front-center
+    {13, 12},  // front-right
+    {A3, 6}   // right
 };
 
 enum Sonar
@@ -109,8 +115,50 @@ void stopMotor()
   analogWrite(enable, 0);
 }
 
+byte GetPWM(byte pin) {
+//  static byte lastPWM = 0;  // Store the previous PWM value
+//  const float alpha = 0.05;  // Smoothing factor, between 0 and 1 (smaller values smooth more)
+
+  unsigned long highTime = pulseIn(pin, HIGH, 50000UL);  // 50 ms timeout
+  unsigned long lowTime = pulseIn(pin, LOW, 50000UL);  // 50 ms timeout
+
+  // pulseIn() returns zero on timeout
+  byte pwm;
+  if (highTime == 0 || lowTime == 0) {
+    pwm = digitalRead(pin) ? 100 : 0;  // HIGH == 100%, LOW == 0%
+  } else {
+    pwm = (100 * highTime) / (highTime + lowTime);  // highTime as percentage of total cycle time
+  }
+
+  // Apply exponential moving average to filter noise
+//  pwm = (alpha * pwm) + ((1 - alpha) * lastPWM);
+//  lastPWM = pwm;
+
+  return pwm;
+}
+
+
+// Function that converts angle from the pwm signal sent by RPI
+
+String GetCameraDecision(){
+  const int value = GetPWM(RPI_COMM_PIN_A);
+  const int motionVal = GetPWM(A0);
+  Serial.println("PWM: "+String(value));
+  if(value == 0){
+    return "NORMAL";
+  }else if(60<=value && value<=75 && motionVal<95){
+    return "RIGHT";
+  }else if(10<=value && value<=25 && motionVal<95){
+    return "LEFT";
+  }else if(motionVal>95){
+    return "STOP";
+  }
+  return "NORMAL";
+}
+
 void setup()
 {
+  Serial.begin(9600);
   // Servo configuration
   servo.attach(servoPin);
   servo.write(90);
@@ -128,27 +176,61 @@ void setup()
   pinMode(motorIn1, OUTPUT);
   pinMode(motorIn2, OUTPUT);
 
+  // Wait for camera to be detected
+  Serial.print("Waiting for Camera..");
+  while (true)
+  {
+    if(GetPWM(A0) > 95)
+    {
+      Serial.println("\nCamera detected");
+      break;
+    }else{
+      Serial.print(".");
+    }
+    delay(1000);
+  }
+  analogWrite(RPI_CAMERA_FLASH, 180);
+  
+  delay(2500);
   goForward(255);
-  Serial.begin(9600);
+  
 }
 
 void loop()
 {
   goForward(255);
-  delay(80);
+  delay(100);
 
   // Read sonar distances
   int frontCenterDistance = getDistanceCM(FRONT_CENTER);
-  // int frontLeftDistance = getDistanceCM(FRONT_LEFT);
-  // int frontRightDistance = getDistanceCM(FRONT_RIGHT);
+   int frontLeftDistance = getDistanceCM(FRONT_LEFT);
+   int frontRightDistance = getDistanceCM(FRONT_RIGHT);
   int leftDistance = getDistanceCM(LEFT);
   int rightDistance = getDistanceCM(RIGHT);
+  String CamDecision = GetCameraDecision();
+  Serial.println(CamDecision);
 
-  // String distances = String(leftDistance) + ", " + String(frontLeftDistance) + ", " + String(frontCenterDistance) + ", " + String(frontRightDistance) + ", " + String(rightDistance) + "\n";
-  // Serial.print(distances);
+   String distances = String(leftDistance) + ", " + String(frontCenterDistance) + ", " + String(rightDistance) + "\n";
+   Serial.print(distances);
 
   // Check for obstacles and steer accordingly
-  if (frontCenterDistance < minimumFrontDistance)
+  if(CamDecision == "LEFT" || CamDecision == "RIGHT"){
+    steering(CamDecision, 0);
+  }
+  else if(CamDecision == "STOP"){
+    Serial.println("Stop Signal Detected");
+    stopMotor();
+    delay(1500);
+    while(true){
+      if(GetPWM(A0)>95){
+        Serial.println("Start Signal Detected...");
+        delay(2000);
+        break;
+      }
+      delay(50);
+    }
+  }
+  else if (frontCenterDistance < minimumFrontDistance)
   {
     if ((leftDistance < minimumDistance) && (rightDistance < minimumDistance))
     {
@@ -180,7 +262,7 @@ void loop()
   }
   else
   {
-    if (leftDistance < minimumDistance)
+    if (min(leftDistance, frontLeftDistance) < minimumDistance) 
     {
       steering("RIGHT", leftDistance);
     }
@@ -188,7 +270,7 @@ void loop()
     // {
       // steering("RIGHT", frontLeftDistance);
     // }
-    else if (rightDistance < minimumDistance)
+    else if (min(rightDistance, frontRightDistance) < minimumDistance)
     {
       steering("LEFT", rightDistance);
     }

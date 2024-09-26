@@ -6,7 +6,7 @@ This repository contains engineering materials of a self-driven vehicle's model 
 
 ## How does it work?
 
-Our project integrates five ultrasonic sensors, positioned at the front, left, right, front-left, and front-right along with an ESP32 CAM for detecting green and red traffic towers. Additionally, a TCS3200 color sensor is employed to detect segment separation colored lines at track corners, enabling precise rotation at the end of the track. The Arduino UNO efficiently controls the steering via Ackermann geometry and adjusts the rear motor's speed for smooth forward or reverse motion. This system combines real-time sensor input and intelligent decision-making to ensure robust obstacle avoidance and accurate navigation.
+Our project integrates five ultrasonic sensors, positioned at the front, left, right, front-left, and front-right along with an Rapberry Pi Zero with Camera for detecting green and red traffic towers. The Arduino UNO efficiently controls the steering via Ackermann steering system and a servo and adjusts the rear motor's speed for smooth forward or reverse motion. This system combines real-time sensor input and intelligent decision-making to ensure robust obstacle avoidance and accurate navigation.
 
 ### Machine learning:
 
